@@ -4,7 +4,49 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
+	"time"
 )
+
+func handleConnection(c net.Conn) {
+	defer c.Close()
+
+	buf := make([]byte, 1024)
+	_, err := c.Read(buf)
+	if err != nil {
+		fmt.Println("Error reading: ", err.Error())
+		os.Exit(1)
+	}
+
+	headers := strings.Split(string(buf), "\r\n")
+
+	reqLine := strings.Split(headers[0], " ")
+
+	if len(reqLine) < 3 {
+		fmt.Println("Invalid request")
+		os.Exit(1)
+	}
+
+	path := reqLine[1]
+	method := reqLine[0]
+
+	var response []byte
+
+	if path == "/" {
+		response = []byte("HTTP/1.1 200 OK\r\n\r\n")
+
+	} else {
+		response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
+	}
+
+	fmt.Println(method + " " + path + " " + time.Now().Format(time.RFC3339) + "  " + string(response))
+
+	_, err = c.Write(response)
+	if err != nil {
+		fmt.Println("Error writing: ", err.Error())
+		os.Exit(1)
+	}
+}
 
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -16,17 +58,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	connection, err := l.Accept()
-	if err != nil {
-		fmt.Println("Error accepting connection: ", err.Error())
-		os.Exit(1)
-	}
+	fmt.Println("Listening on port 4221")
 
-	_, err = connection.Write([]byte("HTTP/1.1 200 OK\r\n\r\n"))
+	defer l.Close()
 
-	if err != nil {
-		fmt.Println("Error writing to connection: ", err.Error())
-		os.Exit(1)
+	for {
+		connection, err := l.Accept()
+		if err != nil {
+			fmt.Println("Failed to accept connection")
+			os.Exit(1)
+		}
+
+		handleConnection(connection)
 	}
 
 }
