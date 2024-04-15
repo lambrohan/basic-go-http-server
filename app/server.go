@@ -39,6 +39,11 @@ func handleConnection(c net.Conn) {
 	} else if strings.HasPrefix(path, "/echo") {
 		suffix := path[6:]
 		response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: text/plain\r\n" + "Content-Length: " + strconv.Itoa(len(suffix)) + "\r\n\r\n" + suffix)
+	} else if strings.HasPrefix(path, "/user-agent") {
+		userAgent := headers[2][12:]
+		fmt.Println(userAgent)
+		response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: text/plain\r\n" + "Content-Length: " + strconv.Itoa(len(userAgent)) + "\r\n\r\n" + userAgent)
+
 	} else {
 		response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
