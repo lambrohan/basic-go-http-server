@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,6 +19,14 @@ func readFile(dir string, file string) ([]byte, error) {
 
 	return data, nil
 
+}
+
+func writeFile(dir string, file string, data string) error {
+	err := os.WriteFile(filepath.Join(dir, file), []byte(data), 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func handleConnection(c net.Conn, directory string) {
@@ -57,12 +66,23 @@ func handleConnection(c net.Conn, directory string) {
 
 	} else if strings.HasPrefix(path, "/files") {
 		file := path[7:]
-		data, err := readFile(directory, file)
+		if method == "GET" {
+			data, err := readFile(directory, file)
 
-		if err != nil {
-			response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
-		} else {
-			response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: application/octet-stream\r\n" + "Content-Length: " + strconv.Itoa(len(data)) + "\r\n\r\n" + string(data))
+			if err != nil {
+				response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
+			} else {
+				response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: application/octet-stream\r\n" + "Content-Length: " + strconv.Itoa(len(data)) + "\r\n\r\n" + string(data))
+			}
+		} else if method == "POST" {
+			fileData := headers[len(headers)-1]
+			err := writeFile(directory, file, fileData)
+			if err != nil {
+				response = []byte("HTTP/1.1 500 Internal Server Error\r\n\r\n")
+			} else {
+				response = []byte("HTTP/1.1 200 Created\r\n\r\n")
+			}
+
 		}
 
 	} else {
