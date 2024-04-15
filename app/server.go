@@ -80,7 +80,7 @@ func handleConnection(c net.Conn, directory string) {
 			if err != nil {
 				response = []byte("HTTP/1.1 500 Internal Server Error\r\n\r\n")
 			} else {
-				response = []byte("HTTP/1.1 200 Created\r\n\r\n")
+				response = []byte("HTTP/1.1 201 Created\r\n\r\n")
 			}
 
 		}
