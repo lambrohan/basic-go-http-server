@@ -9,7 +9,18 @@ import (
 	"time"
 )
 
-func handleConnection(c net.Conn) {
+func readFile(dir string, file string) ([]byte, error) {
+	data, err := os.ReadFile(dir + "/" + file)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+
+}
+
+func handleConnection(c net.Conn, directory string) {
 	defer c.Close()
 
 	buf := make([]byte, 1024)
@@ -44,6 +55,16 @@ func handleConnection(c net.Conn) {
 		fmt.Println(userAgent)
 		response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: text/plain\r\n" + "Content-Length: " + strconv.Itoa(len(userAgent)) + "\r\n\r\n" + userAgent)
 
+	} else if strings.HasPrefix(path, "/files") {
+		file := path[7:]
+		data, err := readFile(directory, file)
+
+		if err != nil {
+			response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
+		} else {
+			response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: text/plain\r\n" + "Content-Length: " + strconv.Itoa(len(data)) + "\r\n\r\n" + string(data))
+		}
+
 	} else {
 		response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
 	}
@@ -60,6 +81,12 @@ func handleConnection(c net.Conn) {
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
+
+	var directory string
+
+	if len(os.Args) > 1 && os.Args[1] == "--directory" {
+		directory = os.Args[2]
+	}
 
 	l, err := net.Listen("tcp", "0.0.0.0:4221")
 	if err != nil {
@@ -78,7 +105,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		go handleConnection(connection)
+		go handleConnection(connection, directory)
 	}
 
 }
