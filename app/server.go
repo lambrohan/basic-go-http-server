@@ -76,7 +76,7 @@ func handleConnection(c net.Conn, directory string) {
 			}
 		} else if method == "POST" {
 			fileData := headers[len(headers)-1]
-			err := writeFile(directory, file, fileData)
+			err := writeFile(directory, file, strings.Trim(fileData, "\x00/"))
 			if err != nil {
 				response = []byte("HTTP/1.1 500 Internal Server Error\r\n\r\n")
 			} else {
