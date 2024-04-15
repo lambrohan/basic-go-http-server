@@ -62,7 +62,7 @@ func handleConnection(c net.Conn, directory string) {
 		if err != nil {
 			response = []byte("HTTP/1.1 404 Not Found\r\n\r\n")
 		} else {
-			response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: text/plain\r\n" + "Content-Length: " + strconv.Itoa(len(data)) + "\r\n\r\n" + string(data))
+			response = []byte("HTTP/1.1 200 OK\r\n" + "Content-Type: application/octet-stream\r\n" + "Content-Length: " + strconv.Itoa(len(data)) + "\r\n\r\n" + string(data))
 		}
 
 	} else {
