@@ -1,1 +1,1 @@
-## basic http server
+## Learning GO by creating a basic http server
